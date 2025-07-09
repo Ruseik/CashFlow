@@ -102,9 +102,7 @@ INSERT INTO currencies (code, name, symbol) VALUES ('LKR', 'Sri Lankan Rupee', '
 
 -- Insert default Void entity (system entity)
 INSERT INTO users (username, email, password, is_admin, primary_currency_id)
-VALUES ('system', 'system@localhost', '$2y$10$r26GVp1O7DGw1L/Q/QxHnO7BX.lXcsrXeg0UQeSMIaN15sXh.8wBC', TRUE, 1);
--- Password is 'Admin@123', but advisable to generate from your own environment through:
--- php -r 'echo password_hash('Admin@123', PASSWORD_DEFAULT);'
+VALUES ('system', 'system@localhost', '$2y$10$abcdefghijklmnopqrstuv', TRUE, 1);
 
 INSERT INTO entities (name, description, user_id, show_in_basic_mode)
 VALUES ('Void', 'System entity for external transactions', 1, TRUE);

@@ -4,6 +4,39 @@
     </div>
 </div>
 
+<div class="row mb-3">
+    <div class="col">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary mb-3">Balance (LKR)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Entity</th>
+                                <th class="text-end">Balance (LKR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($balances as $b): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($b['name']) ?></td>
+                                    <td class="text-end fw-bold <?= $b['balance'] < 0 ? 'text-danger' : 'text-success' ?>">
+                                        <?= number_format($b['balance'], 2) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($balances)): ?>
+                                <tr><td colspan="2" class="text-center">No entities found</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row mb-4">
     <div class="col-lg-6 mb-4">
         <div class="card shadow-sm">

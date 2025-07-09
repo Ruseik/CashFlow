@@ -14,6 +14,54 @@
     </div>
 </div>
 
+<!-- Transactions Filter/Search Bar -->
+<form method="get" class="mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label for="start_date" class="form-label">Start Date *</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" value="<?= htmlspecialchars($filters['start_date'] ?? '') ?>" required>
+        </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label">End Date *</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" value="<?= htmlspecialchars($filters['end_date'] ?? '') ?>" required>
+        </div>
+        <div class="col-md-2">
+            <label for="from_entities" class="form-label">From Entity</label>
+            <select class="form-select" id="from_entities" name="from_entities[]" multiple>
+                <?php foreach ($entities as $entity): ?>
+                    <option value="<?= $entity['id'] ?>" <?= in_array($entity['id'], $filters['from_entities'] ?? []) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($entity['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="to_entities" class="form-label">To Entity</label>
+            <select class="form-select" id="to_entities" name="to_entities[]" multiple>
+                <?php foreach ($entities as $entity): ?>
+                    <option value="<?= $entity['id'] ?>" <?= in_array($entity['id'], $filters['to_entities'] ?? []) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($entity['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="currencies" class="form-label">Currency</label>
+            <select class="form-select" id="currencies" name="currencies[]" multiple>
+                <?php foreach ($currenciesList as $currency): ?>
+                    <option value="<?= $currency['id'] ?>" <?= in_array($currency['id'], $filters['currencies'] ?? []) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($currency['code']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
+        </div>
+    </div>
+</form>
+<!-- End Transactions Filter/Search Bar -->
+
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="table-responsive">

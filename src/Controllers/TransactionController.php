@@ -26,12 +26,44 @@ class TransactionController extends Controller {
 
     public function index(): void {
         $this->requireAuth();
-
         $userId = $_SESSION['user_id'];
-        $transactions = $this->transactionModel->getRecentTransactions($userId, 20);
+
+        // Get filter params from GET
+        $startDate = $_GET['start_date'] ?? date('Y-m-01');
+        $endDate = $_GET['end_date'] ?? date('Y-m-d');
+        $fromEntities = isset($_GET['from_entities']) ? (array)$_GET['from_entities'] : [];
+        $toEntities = isset($_GET['to_entities']) ? (array)$_GET['to_entities'] : [];
+        $currencies = isset($_GET['currencies']) ? (array)$_GET['currencies'] : [];
+
+        // Fetch filter options
+        $entities = $this->entityModel->findByUser($userId, false);
+        $currenciesList = $this->currencyModel->getAllActive(false);
+
+        // Prepare filters for model
+        $filters = [
+            'from_entities' => array_filter($fromEntities, 'is_numeric'),
+            'to_entities' => array_filter($toEntities, 'is_numeric'),
+            'currencies' => array_filter($currencies, 'is_numeric'),
+        ];
+
+        // Only fetch if both dates are set
+        if ($startDate && $endDate) {
+            $transactions = $this->transactionModel->getFilteredTransactions($userId, $startDate, $endDate, $filters);
+        } else {
+            $transactions = [];
+        }
 
         $this->render('transactions/index', [
-            'transactions' => $transactions
+            'transactions' => $transactions,
+            'entities' => $entities,
+            'currenciesList' => $currenciesList,
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'from_entities' => $filters['from_entities'],
+                'to_entities' => $filters['to_entities'],
+                'currencies' => $filters['currencies'],
+            ]
         ]);
     }
 
@@ -39,7 +71,7 @@ class TransactionController extends Controller {
         $this->requireAuth();
 
         $userId = $_SESSION['user_id'];
-        $isBasicMode = (($_GET['mode'] ?? 'basic') === 'basic'); // <-- FIXED
+        $isBasicMode = (($_GET['mode'] ?? 'basic') === 'basic');
 
         // Get all necessary data for dropdowns
         $entities = $this->entityModel->findByUser($userId, $isBasicMode);
@@ -47,13 +79,17 @@ class TransactionController extends Controller {
         $purposes = $this->purposeModel->findByUser($userId, $isBasicMode);
         $modes = $this->modeModel->findByUser($userId, $isBasicMode);
 
+        // Set default currency id for LKR (id=1)
+        $defaultCurrencyId = 1;
+
         $this->render('transactions/create', [
             'entities' => $entities,
             'currencies' => $currencies,
             'purposes' => $purposes,
             'modes' => $modes,
             'isBasicMode' => $isBasicMode,
-            'csrf_token' => $this->csrf()
+            'csrf_token' => $this->csrf(),
+            'defaultCurrencyId' => $defaultCurrencyId
         ]);
     }
 
@@ -90,7 +126,7 @@ class TransactionController extends Controller {
             }
             $data = array_merge($data, [
                 'dest_entity_id' => $voidEntityId,
-                'dest_amount' => 0,
+                'dest_amount' => isset($_POST['dest_amount']) ? (float)$_POST['dest_amount'] : 0, // Use user input if available
                 'dest_currency_id' => $data['start_currency_id'],
                 'fee_entity_id' => $data['start_entity_id'],
                 'fee_amount' => 0,
@@ -177,15 +213,23 @@ class TransactionController extends Controller {
         }
 
         $userId = $_SESSION['user_id'];
-        $isBasicMode = $transaction['dest_entity_id'] === 1 && 
-                      $transaction['dest_amount'] === 0 && 
-                      $transaction['fee_amount'] === 0;
+        // Determine mode from query string if present, else infer from transaction
+        if (isset($_GET['mode'])) {
+            $isBasicMode = ($_GET['mode'] === 'basic');
+        } else {
+            $isBasicMode = $transaction['dest_entity_id'] === 1 && 
+                          $transaction['dest_amount'] === 0 && 
+                          $transaction['fee_amount'] === 0;
+        }
 
-        // Get all necessary data for dropdowns
+        // Get all necessary data for dropdowns based on mode
         $entities = $this->entityModel->findByUser($userId, $isBasicMode);
         $currencies = $this->currencyModel->getAllActive($isBasicMode);
         $purposes = $this->purposeModel->findByUser($userId, $isBasicMode);
         $modes = $this->modeModel->findByUser($userId, $isBasicMode);
+
+        // Set default currency id for LKR (id=1)
+        $defaultCurrencyId = 1;
 
         $this->render('transactions/edit', [
             'transaction' => $transaction,
@@ -194,7 +238,9 @@ class TransactionController extends Controller {
             'purposes' => $purposes,
             'modes' => $modes,
             'isBasicMode' => $isBasicMode,
-            'csrf_token' => $this->csrf()
+            'csrf_token' => $this->csrf(),
+            'defaultCurrencyId' => $defaultCurrencyId,
+            'currentMode' => $isBasicMode ? 'basic' : 'full'
         ]);
     }
 
@@ -235,7 +281,7 @@ class TransactionController extends Controller {
             }
             $data = array_merge($data, [
                 'dest_entity_id' => $voidEntityId,
-                'dest_amount' => 0,
+                'dest_amount' => isset($_POST['dest_amount']) ? (float)$_POST['dest_amount'] : 0, // Use user input if available
                 'dest_currency_id' => $data['start_currency_id'],
                 'fee_entity_id' => $data['start_entity_id'],
                 'fee_amount' => 0,
@@ -259,7 +305,7 @@ class TransactionController extends Controller {
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
             $_SESSION['old'] = $_POST;
-            $this->redirect('/transactions/' . $id . '/edit');
+            $this->redirect('/transactions/' . $id . '/edit?mode=' . ($_POST['mode'] === 'basic' ? 'basic' : 'full'));
             return;
         }
 
@@ -275,7 +321,7 @@ class TransactionController extends Controller {
             $db->rollBack();
             $_SESSION['error'] = 'Failed to update transaction: ' . $e->getMessage();
             $_SESSION['old'] = $_POST;
-            $this->redirect('/transactions/' . $id . '/edit');
+            $this->redirect('/transactions/' . $id . '/edit?mode=' . ($_POST['mode'] === 'basic' ? 'basic' : 'full'));
         }
     }
 

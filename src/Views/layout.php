@@ -24,6 +24,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/analytics">Analytics</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tasks">Task</a>
+                        </li>
                         <?php if ($_SESSION['is_admin'] ?? false): ?>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

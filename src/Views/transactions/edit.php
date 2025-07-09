@@ -8,9 +8,9 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
-        <form method="POST" action="/transactions/<?= $transaction['id'] ?>" class="needs-validation" novalidate id="transactionForm">
+        <form method="POST" action="/transactions/<?= $transaction['id'] ?>?mode=<?= htmlspecialchars($currentMode) ?>" class="needs-validation" novalidate id="transactionForm">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
-            <input type="hidden" name="mode" value="<?= $isBasicMode ? 'basic' : 'full' ?>">
+            <input type="hidden" name="mode" value="<?= htmlspecialchars($currentMode) ?>">
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -20,6 +20,17 @@
                 <div class="col-md-6">
                     <label for="date" class="form-label">Date</label>
                     <input type="date" class="form-control" id="date" name="date" value="<?= htmlspecialchars($transaction['date']) ?>" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="modeToggle" <?= !$isBasicMode ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="modeToggle">
+                            Full Mode
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -42,7 +53,13 @@
                     <label for="start_currency_id" class="form-label">Currency</label>
                     <select class="form-select" id="start_currency_id" name="start_currency_id" required>
                         <?php foreach ($currencies as $currency): ?>
-                            <option value="<?= $currency['id'] ?>" <?= $currency['id'] == $transaction['start_currency_id'] ? 'selected' : '' ?>>
+                            <option value="<?= $currency['id'] ?>" <?php
+                                if (isset($transaction['start_currency_id'])) {
+                                    echo ($currency['id'] == $transaction['start_currency_id']) ? 'selected' : '';
+                                } else {
+                                    echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                }
+                            ?>>
                                 <?= htmlspecialchars($currency['code']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -70,7 +87,13 @@
                     <label for="dest_currency_id" class="form-label">Currency</label>
                     <select class="form-select" id="dest_currency_id" name="dest_currency_id" required>
                         <?php foreach ($currencies as $currency): ?>
-                            <option value="<?= $currency['id'] ?>" <?= $currency['id'] == $transaction['dest_currency_id'] ? 'selected' : '' ?>>
+                            <option value="<?= $currency['id'] ?>" <?php
+                                if (isset($transaction['dest_currency_id'])) {
+                                    echo ($currency['id'] == $transaction['dest_currency_id']) ? 'selected' : '';
+                                } else {
+                                    echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                }
+                            ?>>
                                 <?= htmlspecialchars($currency['code']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -97,7 +120,13 @@
                     <label for="fee_currency_id" class="form-label">Fee Currency</label>
                     <select class="form-select" id="fee_currency_id" name="fee_currency_id" required>
                         <?php foreach ($currencies as $currency): ?>
-                            <option value="<?= $currency['id'] ?>" <?= $currency['id'] == $transaction['fee_currency_id'] ? 'selected' : '' ?>>
+                            <option value="<?= $currency['id'] ?>" <?php
+                                if (isset($transaction['fee_currency_id'])) {
+                                    echo ($currency['id'] == $transaction['fee_currency_id']) ? 'selected' : '';
+                                } else {
+                                    echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                }
+                            ?>>
                                 <?= htmlspecialchars($currency['code']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -152,5 +181,19 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add mode toggle handling for edit form
+    const modeToggle = document.getElementById('modeToggle');
+    if (modeToggle) {
+        modeToggle.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('mode', this.checked ? 'full' : 'basic');
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
 
 <?php include __DIR__ . '/../partials/footer.php'; ?>

@@ -156,4 +156,55 @@ class Transaction extends Model {
         $stmt->execute([$userId, $startDate, $endDate]);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get transactions filtered by date range and optional entity/currency filters.
+     */
+    public function getFilteredTransactions(int $userId, string $startDate, string $endDate, array $filters = []): array {
+        $sql = "SELECT 
+                    t.*,
+                    se.name as start_entity_name,
+                    de.name as dest_entity_name,
+                    fe.name as fee_entity_name,
+                    sc.code as start_currency_code,
+                    dc.code as dest_currency_code,
+                    fc.code as fee_currency_code,
+                    p.name as purpose_name,
+                    m.name as mode_name
+                FROM {$this->table} t
+                JOIN entities se ON t.start_entity_id = se.id
+                JOIN entities de ON t.dest_entity_id = de.id
+                LEFT JOIN entities fe ON t.fee_entity_id = fe.id
+                JOIN currencies sc ON t.start_currency_id = sc.id
+                JOIN currencies dc ON t.dest_currency_id = dc.id
+                LEFT JOIN currencies fc ON t.fee_currency_id = fc.id
+                JOIN purposes p ON t.purpose_id = p.id
+                JOIN modes m ON t.mode_id = m.id
+                WHERE t.user_id = ?
+                  AND t.date BETWEEN ? AND ?";
+        $params = [$userId, $startDate, $endDate];
+
+        // Optional filters
+        if (!empty($filters['from_entities'])) {
+            $in = implode(',', array_fill(0, count($filters['from_entities']), '?'));
+            $sql .= " AND t.start_entity_id IN ($in)";
+            $params = array_merge($params, $filters['from_entities']);
+        }
+        if (!empty($filters['to_entities'])) {
+            $in = implode(',', array_fill(0, count($filters['to_entities']), '?'));
+            $sql .= " AND t.dest_entity_id IN ($in)";
+            $params = array_merge($params, $filters['to_entities']);
+        }
+        if (!empty($filters['currencies'])) {
+            $in = implode(',', array_fill(0, count($filters['currencies']), '?'));
+            $sql .= " AND (t.start_currency_id IN ($in) OR t.dest_currency_id IN ($in))";
+            $params = array_merge($params, $filters['currencies'], $filters['currencies']);
+        }
+
+        $sql .= " ORDER BY t.date DESC, t.created_at DESC";
+
+        $stmt = $this->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

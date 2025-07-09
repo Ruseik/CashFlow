@@ -119,5 +119,12 @@ $router->addRoute('POST', '/modes/:id/delete', ['Controllers\ModeController', 'd
 // Analytics routes
 $router->addRoute('GET', '/analytics', ['Controllers\AnalyticsController', 'index']);
 
+// Task routes
+$router->addRoute('GET', '/tasks', ['Controllers\TaskController', 'index']);
+$router->addRoute('POST', '/tasks', ['Controllers\TaskController', 'store']);
+$router->addRoute('GET', '/tasks/:id', ['Controllers\TaskController', 'show']);
+$router->addRoute('POST', '/tasks/:id/success', ['Controllers\TaskController', 'markSuccessful']);
+$router->addRoute('POST', '/tasks/:id/fail', ['Controllers\TaskController', 'markFailed']);
+
 // Dispatch the request
 $router->dispatch();

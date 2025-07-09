@@ -6,15 +6,14 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
-        <form method="POST" action="/transactions" class="needs-validation" novalidate id="transactionForm">
+        <form method="POST" action="/transactions?mode=<?= $isBasicMode ? 'basic' : 'full' ?>" class="needs-validation" novalidate id="transactionForm">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
             <input type="hidden" name="mode" value="<?= $isBasicMode ? 'basic' : 'full' ?>">
 
             <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="modeToggle" 
-                               <?= $isBasicMode ? '' : 'checked' ?>>
+                        <input class="form-check-input" type="checkbox" id="modeToggle" <?= $isBasicMode ? '' : 'checked' ?>>
                         <label class="form-check-label" for="modeToggle">
                             Full Mode
                         </label>
@@ -78,7 +77,14 @@
                         <option value="">Select currency</option>
                         <?php foreach ($currencies as $currency): ?>
                             <option value="<?= $currency['id'] ?>"
-                                    <?= ($_SESSION['old']['start_currency_id'] ?? '') == $currency['id'] ? 'selected' : '' ?>>
+                                <?php
+                                    $old = $_SESSION['old']['start_currency_id'] ?? null;
+                                    if ($old !== null) {
+                                        echo ($old == $currency['id']) ? 'selected' : '';
+                                    } else {
+                                        echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                    }
+                                ?>>
                                 <?= htmlspecialchars($currency['code']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -98,9 +104,24 @@
                         <select class="form-select <?= isset($_SESSION['errors']['dest_entity_id']) ? 'is-invalid' : '' ?>"
                                 id="dest_entity_id" name="dest_entity_id" <?= $isBasicMode ? '' : 'required' ?>>
                             <option value="">Select destination</option>
-                            <?php foreach ($entities as $entity): ?>
+                            <?php
+                            $voidEntityId = null;
+                            foreach ($entities as $entity) {
+                                if (strtolower($entity['name']) === 'void') {
+                                    $voidEntityId = $entity['id'];
+                                    break;
+                                }
+                            }
+                            foreach ($entities as $entity): ?>
                                 <option value="<?= $entity['id'] ?>"
-                                        <?= ($_SESSION['old']['dest_entity_id'] ?? '') == $entity['id'] ? 'selected' : '' ?>>
+                                    <?php
+                                        $old = $_SESSION['old']['dest_entity_id'] ?? null;
+                                        if ($old !== null) {
+                                            echo ($old == $entity['id']) ? 'selected' : '';
+                                        } else if ($voidEntityId !== null && $voidEntityId == $entity['id']) {
+                                            echo 'selected';
+                                        }
+                                    ?>>
                                     <?= htmlspecialchars($entity['name']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -114,7 +135,7 @@
                         <label for="dest_amount" class="form-label">Amount</label>
                         <input type="number" step="0.01" class="form-control <?= isset($_SESSION['errors']['dest_amount']) ? 'is-invalid' : '' ?>"
                                id="dest_amount" name="dest_amount" value="<?= htmlspecialchars($_SESSION['old']['dest_amount'] ?? '') ?>"
-                               <?= $isBasicMode ? '' : 'required' ?>>
+                               required>
                         <?php if (isset($_SESSION['errors']['dest_amount'])): ?>
                             <div class="invalid-feedback"><?= htmlspecialchars($_SESSION['errors']['dest_amount']) ?></div>
                         <?php endif; ?>
@@ -127,7 +148,14 @@
                             <option value="">Select currency</option>
                             <?php foreach ($currencies as $currency): ?>
                                 <option value="<?= $currency['id'] ?>"
-                                        <?= ($_SESSION['old']['dest_currency_id'] ?? '') == $currency['id'] ? 'selected' : '' ?>>
+                                    <?php
+                                        $old = $_SESSION['old']['dest_currency_id'] ?? null;
+                                        if ($old !== null) {
+                                            echo ($old == $currency['id']) ? 'selected' : '';
+                                        } else {
+                                            echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                        }
+                                    ?>>
                                     <?= htmlspecialchars($currency['code']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -174,7 +202,14 @@
                             <option value="">Select currency</option>
                             <?php foreach ($currencies as $currency): ?>
                                 <option value="<?= $currency['id'] ?>"
-                                        <?= ($_SESSION['old']['fee_currency_id'] ?? '') == $currency['id'] ? 'selected' : '' ?>>
+                                    <?php
+                                        $old = $_SESSION['old']['fee_currency_id'] ?? null;
+                                        if ($old !== null) {
+                                            echo ($old == $currency['id']) ? 'selected' : '';
+                                        } else {
+                                            echo ($defaultCurrencyId == $currency['id']) ? 'selected' : '';
+                                        }
+                                    ?>>
                                     <?= htmlspecialchars($currency['code']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -254,30 +289,68 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modeToggle = document.getElementById('modeToggle');
-    const fullModeFields = document.querySelector('.full-mode-fields');
-    const form = document.getElementById('transactionForm');
-
-    // Mode toggle handling
-    modeToggle.addEventListener('change', function() {
-        const isFullMode = this.checked;
-        fullModeFields.style.display = isFullMode ? 'block' : 'none';
-        form.querySelector('input[name="mode"]').value = isFullMode ? 'full' : 'basic';
-        
-        // Toggle required attributes
-        fullModeFields.querySelectorAll('input, select').forEach(input => {
-            input.required = isFullMode;
+    if (modeToggle) {
+        modeToggle.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('mode', this.checked ? 'full' : 'basic');
+            window.location.href = url.toString();
         });
-    });
+    }
 
-    // Auto-fill fee entity in basic mode
-    const startEntitySelect = document.getElementById('start_entity_id');
-    const feeEntitySelect = document.getElementById('fee_entity_id');
-    
-    startEntitySelect.addEventListener('change', function() {
-        if (!modeToggle.checked && feeEntitySelect) {
-            feeEntitySelect.value = this.value;
+    // --- Auto-select Fee Entity based on From Entity ---
+    const fromEntity = document.getElementById('start_entity_id');
+    const feeEntity = document.getElementById('fee_entity_id');
+    let feeEntityManuallyChanged = false;
+
+    if (fromEntity && feeEntity) {
+        // When user changes Fee Entity, mark as manually changed
+        feeEntity.addEventListener('change', function() {
+            feeEntityManuallyChanged = true;
+        });
+
+        // When user changes From Entity, auto-set Fee Entity if not manually changed
+        fromEntity.addEventListener('change', function() {
+            if (!feeEntityManuallyChanged) {
+                feeEntity.value = fromEntity.value;
+                // Optionally, trigger change event if needed
+                feeEntity.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Reset manual override if From Entity changes back to original
+        fromEntity.addEventListener('change', function() {
+            if (feeEntity.value === fromEntity.value) {
+                feeEntityManuallyChanged = false;
+            }
+        });
+    }
+
+    // --- Auto-fill To Amount from From Amount ---
+    const fromAmount = document.getElementById('start_amount');
+    const toAmount = document.getElementById('dest_amount');
+    let toAmountManuallyChanged = false;
+
+    if (fromAmount && toAmount) {
+        // On page load: if toAmount is 0 or empty and fromAmount has a value, set toAmount to fromAmount
+        if ((toAmount.value === '' || toAmount.value === '0' || toAmount.value === 0) && fromAmount.value !== '') {
+            toAmount.value = fromAmount.value;
         }
-    });
+        toAmount.addEventListener('input', function() {
+            toAmountManuallyChanged = true;
+        });
+        fromAmount.addEventListener('input', function() {
+            if (!toAmountManuallyChanged) {
+                toAmount.value = fromAmount.value;
+                toAmount.dispatchEvent(new Event('input'));
+            }
+        });
+        // Reset manual override if values match
+        fromAmount.addEventListener('input', function() {
+            if (toAmount.value === fromAmount.value) {
+                toAmountManuallyChanged = false;
+            }
+        });
+    }
 });
 </script>
 
