@@ -72,12 +72,12 @@ CREATE TABLE transactions (
     user_id INT UNSIGNED NOT NULL,
     start_entity_id INT UNSIGNED NOT NULL,
     dest_entity_id INT UNSIGNED NOT NULL,
-    start_amount DECIMAL(15,2) NOT NULL,
+    start_amount DECIMAL(15,8) NOT NULL,
     start_currency_id INT UNSIGNED NOT NULL,
-    dest_amount DECIMAL(15,2) NOT NULL,
+    dest_amount DECIMAL(15,8) NOT NULL,
     dest_currency_id INT UNSIGNED NOT NULL,
     fee_entity_id INT UNSIGNED,
-    fee_amount DECIMAL(15,2) DEFAULT 0.00,
+    fee_amount DECIMAL(15,8) DEFAULT 0.00,
     fee_currency_id INT UNSIGNED,
     date DATE NOT NULL,
     purpose_id INT UNSIGNED NOT NULL,
@@ -96,6 +96,12 @@ CREATE TABLE transactions (
     FOREIGN KEY (purpose_id) REFERENCES purposes(id),
     FOREIGN KEY (mode_id) REFERENCES modes(id)
 ) ENGINE=InnoDB;
+
+-- Increase precision for start_amount and dest_amount
+ALTER TABLE transactions
+MODIFY start_amount DECIMAL(15,8) NOT NULL,
+MODIFY dest_amount DECIMAL(15,8) NOT NULL,
+MODIFY fee_amount DECIMAL(15,8) DEFAULT 0.00;
 
 -- Insert default currency
 INSERT INTO currencies (code, name, symbol) VALUES ('LKR', 'Sri Lankan Rupee', 'LKR');

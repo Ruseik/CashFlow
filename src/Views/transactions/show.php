@@ -1,3 +1,5 @@
+<?php include_once __DIR__ . '/../partials/amount_format.php'; ?>
+
 <div class="row mb-4">
     <div class="col">
         <h2>Transaction Details</h2>
@@ -53,8 +55,8 @@
                         <strong>Amount:</strong>
                     </div>
                     <div class="col-md-9">
-                        <?= htmlspecialchars($startCurrency['code']) ?> 
-                        <?= number_format($transaction['start_amount'], 2) ?>
+                        <?= isset($transaction['start_currency_code']) ? htmlspecialchars($transaction['start_currency_code']) . ' ' : '' ?>
+                        <?= amount_format($transaction['start_amount']) ?>
                     </div>
                 </div>
 
@@ -73,8 +75,8 @@
                             <strong>Destination Amount:</strong>
                         </div>
                         <div class="col-md-9">
-                            <?= htmlspecialchars($destCurrency['code']) ?> 
-                            <?= number_format($transaction['dest_amount'], 2) ?>
+                            <?= isset($transaction['dest_currency_code']) ? htmlspecialchars($transaction['dest_currency_code']) . ' ' : '' ?>
+                            <?= amount_format($transaction['dest_amount']) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -85,8 +87,8 @@
                             <strong>Fee:</strong>
                         </div>
                         <div class="col-md-9">
-                            <?= htmlspecialchars($feeCurrency['code']) ?> 
-                            <?= number_format($transaction['fee_amount'], 2) ?>
+                            <?= isset($transaction['fee_currency_code']) ? htmlspecialchars($transaction['fee_currency_code']) . ' ' : '' ?>
+                            <?= amount_format($transaction['fee_amount']) ?>
                             (<?= htmlspecialchars($feeEntity['name']) ?>)
                         </div>
                     </div>

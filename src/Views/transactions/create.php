@@ -63,8 +63,9 @@
 
                 <div class="col-md-4">
                     <label for="start_amount" class="form-label">Amount</label>
-                    <input type="number" step="0.01" class="form-control <?= isset($_SESSION['errors']['start_amount']) ? 'is-invalid' : '' ?>"
-                           id="start_amount" name="start_amount" value="<?= htmlspecialchars($_SESSION['old']['start_amount'] ?? '') ?>" required>
+                    <input type="number" step="0.00000001" class="form-control <?= isset($_SESSION['errors']['start_amount']) ? 'is-invalid' : '' ?>"
+                           id="start_amount" name="start_amount" value="<?= htmlspecialchars($_SESSION['old']['start_amount'] ?? '0') ?>"
+                           required>
                     <?php if (isset($_SESSION['errors']['start_amount'])): ?>
                         <div class="invalid-feedback"><?= htmlspecialchars($_SESSION['errors']['start_amount']) ?></div>
                     <?php endif; ?>
@@ -133,8 +134,8 @@
 
                     <div class="col-md-4">
                         <label for="dest_amount" class="form-label">Amount</label>
-                        <input type="number" step="0.01" class="form-control <?= isset($_SESSION['errors']['dest_amount']) ? 'is-invalid' : '' ?>"
-                               id="dest_amount" name="dest_amount" value="<?= htmlspecialchars($_SESSION['old']['dest_amount'] ?? '') ?>"
+                        <input type="number" step="0.00000001" class="form-control <?= isset($_SESSION['errors']['dest_amount']) ? 'is-invalid' : '' ?>"
+                               id="dest_amount" name="dest_amount" value="<?= htmlspecialchars($_SESSION['old']['dest_amount'] ?? '0') ?>"
                                required>
                         <?php if (isset($_SESSION['errors']['dest_amount'])): ?>
                             <div class="invalid-feedback"><?= htmlspecialchars($_SESSION['errors']['dest_amount']) ?></div>
@@ -187,7 +188,7 @@
 
                     <div class="col-md-4">
                         <label for="fee_amount" class="form-label">Fee Amount</label>
-                        <input type="number" step="0.01" class="form-control <?= isset($_SESSION['errors']['fee_amount']) ? 'is-invalid' : '' ?>"
+                        <input type="number" step="0.00000001" class="form-control <?= isset($_SESSION['errors']['fee_amount']) ? 'is-invalid' : '' ?>"
                                id="fee_amount" name="fee_amount" value="<?= htmlspecialchars($_SESSION['old']['fee_amount'] ?? '0') ?>"
                                <?= $isBasicMode ? '' : 'required' ?>>
                         <?php if (isset($_SESSION['errors']['fee_amount'])): ?>

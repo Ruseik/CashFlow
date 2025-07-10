@@ -1,3 +1,5 @@
+<?php include_once __DIR__ . '/../partials/amount_format.php'; ?>
+
 <div class="row mb-4">
     <div class="col-md-6">
         <h2>Transactions</h2>
@@ -87,12 +89,12 @@
                             <td><?= htmlspecialchars($t['start_entity_name']) ?></td>
                             <td>
                                 <?= htmlspecialchars($t['start_currency_code']) ?> 
-                                <?= number_format($t['start_amount'], 2) ?>
+                                <?= amount_format($t['start_amount']) ?>
                             </td>
                             <td><?= htmlspecialchars($t['dest_entity_name']) ?></td>
                             <td>
                                 <?= htmlspecialchars($t['dest_currency_code']) ?> 
-                                <?= number_format($t['dest_amount'], 2) ?>
+                                <?= amount_format($t['dest_amount']) ?>
                             </td>
                             <td><?= htmlspecialchars($t['purpose_name']) ?></td>
                             <td><?= htmlspecialchars($t['mode_name']) ?></td>

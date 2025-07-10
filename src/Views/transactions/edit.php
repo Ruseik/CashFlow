@@ -47,7 +47,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="start_amount" class="form-label">Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="start_amount" name="start_amount" value="<?= $transaction['start_amount'] ?>" required>
+                    <input type="number" step="0.00000001" class="form-control" id="start_amount" name="start_amount" value="<?= $transaction['start_amount'] ?>" required>
                 </div>
                 <div class="col-md-4">
                     <label for="start_currency_id" class="form-label">Currency</label>
@@ -81,7 +81,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="dest_amount" class="form-label">Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="dest_amount" name="dest_amount" value="<?= $transaction['dest_amount'] ?>" required>
+                    <input type="number" step="0.00000001" class="form-control" id="dest_amount" name="dest_amount" value="<?= $transaction['dest_amount'] ?>" required>
                 </div>
                 <div class="col-md-4">
                     <label for="dest_currency_id" class="form-label">Currency</label>
@@ -114,7 +114,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="fee_amount" class="form-label">Fee Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="fee_amount" name="fee_amount" value="<?= $transaction['fee_amount'] ?>" required>
+                    <input type="number" step="0.00000001" class="form-control" id="fee_amount" name="fee_amount" value="<?= $transaction['fee_amount'] ?>" required>
                 </div>
                 <div class="col-md-4">
                     <label for="fee_currency_id" class="form-label">Fee Currency</label>

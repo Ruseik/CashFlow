@@ -1,3 +1,5 @@
+<?php include_once __DIR__ . '/../partials/amount_format.php'; ?>
+
 <div class="row mb-4">
     <div class="col">
         <h2>Analytics Dashboard</h2>
@@ -22,7 +24,7 @@
                                 <tr>
                                     <td><?= htmlspecialchars($b['name']) ?></td>
                                     <td class="text-end fw-bold <?= $b['balance'] < 0 ? 'text-danger' : 'text-success' ?>">
-                                        <?= number_format($b['balance'], 2) ?>
+                                        <?= amount_format($b['balance']) ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -68,7 +70,7 @@
                 <div class="card text-bg-light mb-3">
                     <div class="card-body">
                         <h6 class="card-title">Total Expenditure</h6>
-                        <p class="card-text fs-4 fw-bold"><?= number_format($exp_total ?? 0, 2) ?></p>
+                        <p class="card-text fs-4 fw-bold"><?= amount_format($exp_total ?? 0) ?></p>
                     </div>
                 </div>
             </div>
@@ -76,7 +78,7 @@
                 <div class="card text-bg-light mb-3">
                     <div class="card-body">
                         <h6 class="card-title">Average Expenditure</h6>
-                        <p class="card-text fs-4 fw-bold"><?= number_format($exp_avg ?? 0, 2) ?></p>
+                        <p class="card-text fs-4 fw-bold"><?= amount_format($exp_avg ?? 0) ?></p>
                     </div>
                 </div>
             </div>
@@ -120,7 +122,7 @@
                                     <?php foreach (($expenditures ?? []) as $exp): ?>
                                         <tr>
                                             <td><?= htmlspecialchars($exp['date']) ?></td>
-                                            <td><?= number_format($exp['amount'], 2) ?></td>
+                                            <td><?= amount_format($exp['amount']) ?></td>
                                             <td><?= htmlspecialchars($exp['currency']) ?></td>
                                             <td><?= htmlspecialchars($exp['description']) ?></td>
                                         </tr>
@@ -147,13 +149,13 @@
                                 <?php $total_entity = 0; foreach (($exp_by_entity ?? []) as $row): $total_entity += $row['amount']; ?>
                                     <tr>
                                         <td><?= htmlspecialchars($row['entity']) ?></td>
-                                        <td><?= number_format($row['amount'], 2) ?></td>
+                                        <td><?= amount_format($row['amount']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (empty($exp_by_entity)): ?>
                                     <tr><td colspan="2" class="text-center">No data</td></tr>
                                 <?php else: ?>
-                                    <tr class="fw-bold"><td>Total</td><td><?= number_format($total_entity, 2) ?></td></tr>
+                                    <tr class="fw-bold"><td>Total</td><td><?= amount_format($total_entity) ?></td></tr>
                                 <?php endif; ?>
                                 </tbody>
                             </table>
@@ -172,13 +174,13 @@
                                 <?php $total_purpose = 0; foreach (($exp_by_purpose ?? []) as $row): $total_purpose += $row['amount']; ?>
                                     <tr>
                                         <td><?= htmlspecialchars($row['purpose']) ?></td>
-                                        <td><?= number_format($row['amount'], 2) ?></td>
+                                        <td><?= amount_format($row['amount']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (empty($exp_by_purpose)): ?>
                                     <tr><td colspan="2" class="text-center">No data</td></tr>
                                 <?php else: ?>
-                                    <tr class="fw-bold"><td>Total</td><td><?= number_format($total_purpose, 2) ?></td></tr>
+                                    <tr class="fw-bold"><td>Total</td><td><?= amount_format($total_purpose) ?></td></tr>
                                 <?php endif; ?>
                                 </tbody>
                             </table>
@@ -197,13 +199,13 @@
                                 <?php $total_mode = 0; foreach (($exp_by_mode ?? []) as $row): $total_mode += $row['amount']; ?>
                                     <tr>
                                         <td><?= htmlspecialchars($row['mode']) ?></td>
-                                        <td><?= number_format($row['amount'], 2) ?></td>
+                                        <td><?= amount_format($row['amount']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                                 <?php if (empty($exp_by_mode)): ?>
                                     <tr><td colspan="2" class="text-center">No data</td></tr>
                                 <?php else: ?>
-                                    <tr class="fw-bold"><td>Total</td><td><?= number_format($total_mode, 2) ?></td></tr>
+                                    <tr class="fw-bold"><td>Total</td><td><?= amount_format($total_mode) ?></td></tr>
                                 <?php endif; ?>
                                 </tbody>
                             </table>
