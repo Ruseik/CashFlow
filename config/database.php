@@ -1,9 +1,9 @@
 <?php
 return [
     'host' => 'localhost',
-    'dbname' => 'your database name',
-    'username' => 'your database username',
-    'password' => 'your password for the database user',
+    'dbname' => 'budget_db',
+    'username' => 'budget_user',
+    'password' => 'asdw10010',
     'charset' => 'utf8mb4',
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

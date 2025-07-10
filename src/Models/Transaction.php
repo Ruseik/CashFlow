@@ -207,4 +207,100 @@ class Transaction extends Model {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get expenditure analytics for a user (where dest_entity_id is 'void' entity).
+     * Returns: expenditures list, total, avg, count, monthly breakdown.
+     */
+    public function getExpendituresAnalytics(int $userId, int $voidEntityId, string $startDate, string $endDate, ?int $currencyId = null): array {
+        // Main expenditures query
+        $params = [$userId, $voidEntityId, $startDate, $endDate];
+        $currencySql = '';
+        if ($currencyId) {
+            $currencySql = ' AND t.start_currency_id = ?';
+            $params[] = $currencyId;
+        }
+        $sql = "SELECT t.date, t.start_amount as amount, c.code as currency, t.remarks as description
+                FROM {$this->table} t
+                JOIN currencies c ON t.start_currency_id = c.id
+                WHERE t.user_id = ?
+                  AND t.dest_entity_id = ?
+                  AND t.date BETWEEN ? AND ?
+                  $currencySql
+                ORDER BY t.date DESC, t.created_at DESC";
+        $stmt = $this->prepare($sql);
+        $stmt->execute($params);
+        $expenditures = $stmt->fetchAll();
+
+        // Summary stats
+        $total = 0;
+        $count = count($expenditures);
+        $monthly = [];
+        foreach ($expenditures as $exp) {
+            $total += (float)$exp['amount'];
+            $month = date('Y-m', strtotime($exp['date']));
+            if (!isset($monthly[$month])) $monthly[$month] = 0;
+            $monthly[$month] += (float)$exp['amount'];
+        }
+        $avg = $count > 0 ? $total / $count : 0;
+        // Format for chart
+        $monthlyArr = [];
+        foreach ($monthly as $month => $amount) {
+            $monthlyArr[] = ['month' => $month, 'amount' => $amount];
+        }
+        // Sort months ascending
+        usort($monthlyArr, fn($a, $b) => strcmp($a['month'], $b['month']));
+
+        return [
+            'expenditures' => $expenditures,
+            'total' => $total,
+            'avg' => $avg,
+            'count' => $count,
+            'by_month' => $monthlyArr
+        ];
+    }
+
+    /**
+     * Get advanced expenditure breakdowns: by entity, by purpose, by mode.
+     */
+    public function getExpenditureBreakdowns(int $userId, int $voidEntityId, string $startDate, string $endDate, ?int $currencyId = null): array {
+        $params = [$userId, $voidEntityId, $startDate, $endDate];
+        $currencySql = '';
+        if ($currencyId) {
+            $currencySql = ' AND t.start_currency_id = ?';
+            $params[] = $currencyId;
+        }
+        // By entity (start_entity)
+        $sqlEntity = "SELECT se.name as entity, SUM(t.start_amount) as amount
+                      FROM {$this->table} t
+                      JOIN entities se ON t.start_entity_id = se.id
+                      WHERE t.user_id = ? AND t.dest_entity_id = ? AND t.date BETWEEN ? AND ? $currencySql
+                      GROUP BY se.name ORDER BY amount DESC";
+        $stmt = $this->prepare($sqlEntity);
+        $stmt->execute($params);
+        $by_entity = $stmt->fetchAll();
+        // By purpose
+        $sqlPurpose = "SELECT p.name as purpose, SUM(t.start_amount) as amount
+                       FROM {$this->table} t
+                       JOIN purposes p ON t.purpose_id = p.id
+                       WHERE t.user_id = ? AND t.dest_entity_id = ? AND t.date BETWEEN ? AND ? $currencySql
+                       GROUP BY p.name ORDER BY amount DESC";
+        $stmt = $this->prepare($sqlPurpose);
+        $stmt->execute($params);
+        $by_purpose = $stmt->fetchAll();
+        // By mode
+        $sqlMode = "SELECT m.name as mode, SUM(t.start_amount) as amount
+                    FROM {$this->table} t
+                    JOIN modes m ON t.mode_id = m.id
+                    WHERE t.user_id = ? AND t.dest_entity_id = ? AND t.date BETWEEN ? AND ? $currencySql
+                    GROUP BY m.name ORDER BY amount DESC";
+        $stmt = $this->prepare($sqlMode);
+        $stmt->execute($params);
+        $by_mode = $stmt->fetchAll();
+        return [
+            'by_entity' => $by_entity,
+            'by_purpose' => $by_purpose,
+            'by_mode' => $by_mode
+        ];
+    }
 }
