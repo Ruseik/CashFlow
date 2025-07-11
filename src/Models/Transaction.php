@@ -242,7 +242,7 @@ class Transaction extends Model {
             if (!isset($monthly[$month])) $monthly[$month] = 0;
             $monthly[$month] += (float)$exp['amount'];
         }
-        $avg = $count > 0 ? $total / $count : 0;
+        $avg = 0; // Removed calculation and return of avg
         // Format for chart
         $monthlyArr = [];
         foreach ($monthly as $month => $amount) {
@@ -254,7 +254,6 @@ class Transaction extends Model {
         return [
             'expenditures' => $expenditures,
             'total' => $total,
-            'avg' => $avg,
             'count' => $count,
             'by_month' => $monthlyArr
         ];
