@@ -302,4 +302,76 @@ class Transaction extends Model {
             'by_mode' => $by_mode
         ];
     }
+
+    /**
+     * Get crypto balance analytics for a user.
+     * Returns the inflow, outflow and netflow of crypto currencies per entity.
+     */
+    public function getCryptoBalances(int $userId, ?string $startDate = null, ?string $endDate = null): array {
+        $params = [$userId];
+        $dateSql = '';
+        
+        if ($startDate && $endDate) {
+            $dateSql = " AND t.date BETWEEN ? AND ?";
+            $params[] = $startDate;
+            $params[] = $endDate;
+        }
+        
+        // Query to calculate inflow (dest_amount), outflow (start_amount + fee_amount) and netflow per entity and currency
+        $sql = "SELECT 
+                    e.id as entity_id,
+                    e.name as entity_name,
+                    c.id as currency_id,
+                    c.code as currency_code,
+                    SUM(CASE WHEN t.dest_entity_id = e.id AND t.dest_currency_id = c.id THEN t.dest_amount ELSE 0 END) as inflow,
+                    SUM(CASE WHEN t.start_entity_id = e.id AND t.start_currency_id = c.id THEN t.start_amount ELSE 0 END) as outflow_start,
+                    SUM(CASE WHEN t.fee_entity_id = e.id AND t.fee_currency_id = c.id THEN t.fee_amount ELSE 0 END) as outflow_fee,
+                    (
+                        SUM(CASE WHEN t.dest_entity_id = e.id AND t.dest_currency_id = c.id THEN t.dest_amount ELSE 0 END) - 
+                        SUM(CASE WHEN t.start_entity_id = e.id AND t.start_currency_id = c.id THEN t.start_amount ELSE 0 END) -
+                        SUM(CASE WHEN t.fee_entity_id = e.id AND t.fee_currency_id = c.id THEN t.fee_amount ELSE 0 END)
+                    ) as netflow
+                FROM 
+                    transactions t
+                JOIN 
+                    entities e ON e.id = t.start_entity_id OR e.id = t.dest_entity_id OR e.id = t.fee_entity_id
+                JOIN 
+                    currencies c ON c.id = t.start_currency_id OR c.id = t.dest_currency_id OR c.id = t.fee_currency_id
+                WHERE 
+                    t.user_id = ? $dateSql
+                    AND (e.name = 'Binance' OR e.name = 'Void')
+                GROUP BY 
+                    e.id, e.name, c.id, c.code
+                HAVING 
+                    inflow > 0 OR outflow_start > 0 OR outflow_fee > 0
+                ORDER BY 
+                    e.name, c.code";
+
+        $stmt = $this->prepare($sql);
+        $stmt->execute($params);
+        $balances = $stmt->fetchAll();
+
+        // Group by entity
+        $entityBalances = [];
+        foreach ($balances as $balance) {
+            $entityId = $balance['entity_id'];
+            if (!isset($entityBalances[$entityId])) {
+                $entityBalances[$entityId] = [
+                    'entity_id' => $entityId,
+                    'entity_name' => $balance['entity_name'],
+                    'currencies' => []
+                ];
+            }
+            
+            $entityBalances[$entityId]['currencies'][] = [
+                'currency_id' => $balance['currency_id'],
+                'currency_code' => $balance['currency_code'],
+                'inflow' => (float)$balance['inflow'],
+                'outflow' => (float)$balance['outflow_start'] + (float)$balance['outflow_fee'],
+                'netflow' => (float)$balance['netflow']
+            ];
+        }
+        
+        return array_values($entityBalances);
+    }
 }

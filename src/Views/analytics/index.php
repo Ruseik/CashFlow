@@ -46,6 +46,13 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col">
+        <h3>Crypto Analytics</h3>
+        <a href="/analytics/crypto" class="btn btn-outline-primary mb-3">Go to Crypto Analytics</a>
+    </div>
+</div>
+
 <script>
 // Prepare data for charts
 const analytics = <?= json_encode($analytics) ?>;

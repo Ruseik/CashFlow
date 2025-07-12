@@ -119,6 +119,7 @@ $router->addRoute('POST', '/modes/:id/delete', ['Controllers\ModeController', 'd
 // Analytics routes
 $router->addRoute('GET', '/analytics', ['Controllers\AnalyticsController', 'index']);
 $router->addRoute('GET', '/analytics/expenditure', ['Controllers\AnalyticsController', 'expenditure']);
+$router->addRoute('GET', '/analytics/crypto', ['Controllers\AnalyticsController', 'crypto']);
 
 // Task routes
 $router->addRoute('GET', '/tasks', ['Controllers\TaskController', 'index']);

@@ -179,4 +179,26 @@ class AnalyticsController extends Controller {
             'exp_by_mode' => $exp_breakdowns['by_mode']
         ]);
     }
+
+    public function crypto(): void {
+        $this->requireAuth();
+        $userId = $_SESSION['user_id'];
+        $endDate = $_GET['date_to'] ?? date('Y-m-d');
+        $startDate = $_GET['date_from'] ?? date('Y-m-01', strtotime('-11 months', strtotime($endDate)));
+
+        // Get crypto balance data
+        $cryptoBalances = $this->transactionModel->getCryptoBalances(
+            $userId,
+            $_GET['date_from'] ?? $startDate,
+            $_GET['date_to'] ?? $endDate
+        );
+
+        $this->render('analytics/crypto', [
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'cryptoBalances' => $cryptoBalances,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null
+        ]);
+    }
 }
